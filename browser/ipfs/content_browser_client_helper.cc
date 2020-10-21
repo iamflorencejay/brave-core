@@ -9,10 +9,10 @@
 #include <utility>
 
 #include "base/task/post_task.h"
+#include "brave/browser/ipfs/ipfs_service_factory.h"
 #include "brave/browser/profiles/profile_util.h"
 #include "brave/common/url_constants.h"
 #include "brave/components/ipfs/ipfs_constants.h"
-#include "brave/components/ipfs/ipfs_service.h"
 #include "brave/components/ipfs/pref_names.h"
 #include "brave/components/ipfs/translate_ipfs_uri.h"
 #include "chrome/browser/external_protocol/external_protocol_handler.h"
@@ -28,12 +28,7 @@
 namespace {
 
 bool IsIPFSDisabled(content::BrowserContext* browser_context) {
-  auto* prefs = user_prefs::UserPrefs::Get(browser_context);
-  auto resolve_method = static_cast<ipfs::IPFSResolveMethodTypes>(
-      prefs->GetInteger(kIPFSResolveMethod));
-  return resolve_method == ipfs::IPFSResolveMethodTypes::IPFS_DISABLED ||
-         !ipfs::IpfsService::IsIpfsEnabled(
-             browser_context, brave::IsRegularProfile(browser_context));
+  return !ipfs::IpfsServiceFactory::GetForContext(browser_context);
 }
 
 bool IsIPFSLocalGateway(content::BrowserContext* browser_context) {
