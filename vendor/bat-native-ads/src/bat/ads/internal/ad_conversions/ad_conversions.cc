@@ -16,6 +16,7 @@
 #include "bat/ads/internal/ads_impl.h"
 #include "bat/ads/internal/confirmations/confirmations.h"
 #include "bat/ads/internal/database/tables/ad_conversions_database_table.h"
+#include "bat/ads/internal/database/tables/ad_events_database_table.h"
 #include "bat/ads/internal/filters/ads_history_filter_factory.h"
 #include "bat/ads/internal/logging.h"
 #include "bat/ads/internal/sorts/ad_conversions/ad_conversions_sort_factory.h"
@@ -109,57 +110,56 @@ void AdConversions::OnGetAdConversions(
     const std::string& url,
     const Result result,
     const AdConversionList& ad_conversions) {
-  if (result != SUCCESS) {
-    BLOG(1, "No ad conversions found");
-    return;
-  }
+  // if (result != SUCCESS) {
+  //   BLOG(1, "No ad conversions found");
+  //   return;
+  // }
 
-  std::deque<AdHistory> ads_history = ads_->get_client()->GetAdsHistory();
-  ads_history = FilterAdsHistory(ads_history);
-  ads_history = SortAdsHistory(ads_history);
+  // std::deque<AdHistory> ads_history = ads_->get_client()->GetAdsHistory();
+  // ads_history = FilterAdsHistory(ads_history); // filter to keep clicks and views
+  // ads_history = SortAdsHistory(ads_history);  // no longer required
 
-  AdConversionList new_ad_conversions = ad_conversions;
-  new_ad_conversions = FilterAdConversions(url, new_ad_conversions);
-  new_ad_conversions = SortAdConversions(new_ad_conversions);
+  // AdConversionList new_ad_conversions = ad_conversions;
+  // new_ad_conversions = FilterAdConversions(url, new_ad_conversions);
+  // new_ad_conversions = SortAdConversions(new_ad_conversions);
 
-  bool converted = false;
+  // bool converted = false;
 
-  for (const auto& ad_conversion : new_ad_conversions) {
-    for (const auto& ad : ads_history) {
-      auto ad_conversion_history = ads_->get_client()->GetAdConversionHistory();
-      if (ad_conversion_history.find(ad_conversion.creative_set_id) !=
-          ad_conversion_history.end()) {
-        // Creative set id has already been converted
-        continue;
-      }
+  // for (const auto& ad_conversion : new_ad_conversions) {
+  //   for (const auto& ad : ads_history) {
+  //     auto ad_conversion_history = ads_->get_client()->GetAdConversionHistory();
+  //     if (ad_conversion_history.find(ad_conversion.creative_set_id) !=
+  //         ad_conversion_history.end()) {
+  //       // Creative set id has already been converted
+  //       continue;
+  //     }
 
-      if (ad_conversion.creative_set_id != ad.ad_content.creative_set_id) {
-        // Creative set id does not match
-        continue;
-      }
+  //     if (ad_conversion.creative_set_id != ad.ad_content.creative_set_id) {
+  //       // Creative set id does not match
+  //       continue;
+  //     }
 
-      const base::Time observation_window = base::Time::Now() -
-          base::TimeDelta::FromDays(ad_conversion.observation_window);
-      const base::Time time = base::Time::FromDoubleT(ad.timestamp_in_seconds);
-      if (observation_window > time) {
-        // Observation window has expired
-        continue;
-      }
+  //     const base::Time observation_window = base::Time::Now() -
+  //         base::TimeDelta::FromDays(ad_conversion.observation_window);
+  //     const base::Time time = base::Time::FromDoubleT(ad.timestamp_in_seconds);
+  //     if (observation_window > time) {
+  //       // Observation window has expired
+  //       continue;
+  //     }
 
-      BLOG(1, "Ad conversion for creative set id " <<
-          ad_conversion.creative_set_id << " and "
-              << std::string(ad_conversion.type));
+  //     BLOG(1, "Ad conversion for creative set id " <<
+  //         ad_conversion.creative_set_id << " and "
+  //             << std::string(ad_conversion.type));
 
-      AddItemToQueue(ad.ad_content.creative_instance_id,
-          ad.ad_content.creative_set_id);
+  //     AddItemToQueue(ad);
 
-      converted = true;
-    }
-  }
+  //     converted = true;
+  //   }
+  // }
 
-  if (!converted) {
-    BLOG(1, "No ad conversion matches found for visited URL");
-  }
+  // if (!converted) {
+  //   BLOG(1, "No ad conversion matches found for visited URL");
+  // }
 }
 
 std::deque<AdHistory> AdConversions::FilterAdsHistory(
@@ -203,17 +203,24 @@ AdConversionList AdConversions::SortAdConversions(
 }
 
 void AdConversions::AddItemToQueue(
-    const std::string& creative_instance_id,
-    const std::string& creative_set_id) {
+    const AdInfo& ad) {
   DCHECK(is_initialized_);
-  DCHECK(!creative_instance_id.empty());
-  DCHECK(!creative_set_id.empty());
 
-  if (creative_instance_id.empty() || creative_set_id.empty()) {
-    return;
-  }
-
-  ads_->get_client()->AppendCreativeSetIdToAdConversionHistory(creative_set_id);
+  AdEventInfo ad_event;
+  ad_event.uuid = ad.uuid;
+  ad_event.creative_instance_id = ad.creative_instance_id;
+  ad_event.creative_set_id = ad.creative_set_id;
+  ad_event.campaign_id = ad.campaign_id;
+  ad_event.timestamp = static_cast<int64_t>(base::Time::Now().ToDoubleT());
+  ad_event.confirmation_type = ConfirmationType::kConversion;
+  ad_event.ad_type = ad.type;
+  database::table::AdEvents ad_events_database_table(ads_);
+  ad_events_database_table.LogEvent(ad_event, [](
+      const Result result) {
+    if (result != Result::SUCCESS) {
+      BLOG(1, "Failed to log ad conversion event");
+    }
+  });
 
   AdConversionQueueItemInfo ad_conversion;
 
@@ -223,8 +230,8 @@ void AdConversions::AddItemToQueue(
   const uint64_t now = static_cast<uint64_t>(base::Time::Now().ToDoubleT());
 
   ad_conversion.timestamp_in_seconds = now + rand_delay;
-  ad_conversion.creative_instance_id = creative_instance_id;
-  ad_conversion.creative_set_id = creative_set_id;
+  ad_conversion.creative_instance_id = ad.creative_instance_id;
+  ad_conversion.creative_set_id = ad.creative_set_id;
 
   queue_.push_back(ad_conversion);
 

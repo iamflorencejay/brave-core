@@ -10,6 +10,7 @@
 
 #include "bat/ads/internal/bundle/creative_ad_info.h"
 #include "bat/ads/internal/frequency_capping/exclusion_rules/exclusion_rule.h"
+#include "bat/ads/internal/time_util.h"
 
 namespace ads {
 
@@ -28,7 +29,8 @@ class DaypartFrequencyCap : public ExclusionRule {
       const DaypartFrequencyCap&) = delete;
 
   bool ShouldExclude(
-      const CreativeAdInfo& ad) override;
+      const CreativeAdInfo& ad,
+      const AdEventList& ad_events) override;
 
   std::string get_last_message() const override;
 
@@ -40,16 +42,13 @@ class DaypartFrequencyCap : public ExclusionRule {
   bool DoesRespectCap(
       const CreativeAdInfo& ad) const;
 
-  bool HasDayOfWeekMatch(
-      const std::string& current_dow,
-      const std::string& days_of_week) const;
-  bool HasTimeSlotMatch(
-      const int current_minutes_from_start,
-      const int start_time,
-      const int end_time) const;
+  bool DoesMatchDayOfWeek(
+      const CreativeDaypartInfo& daypart,
+      const std::string& day_of_week) const;
 
-  std::string GetCurrentDayOfWeek() const;
-  int GetCurrentLocalMinutesFromStart() const;
+  bool DoesMatchTimeSlot(
+      const CreativeDaypartInfo& daypart,
+      const int minutes) const;
 };
 
 }  // namespace ads
