@@ -19,7 +19,7 @@
 #include "brave/browser/extensions/brave_tor_client_updater.h"
 #include "brave/browser/net/brave_proxying_url_loader_factory.h"
 #include "brave/browser/net/brave_proxying_web_socket.h"
-#include "brave/browser/new_tab/new_tab_shows_options.h"
+#include "brave/browser/new_tab/new_tab_shows_navigation_throttle.h"
 #include "brave/browser/profiles/profile_util.h"
 #include "brave/browser/tor/buildflags.h"
 #include "brave/common/pref_names.h"
@@ -163,8 +163,6 @@ void BraveContentBrowserClient::BrowserURLHandlerCreated(
   }
 #endif
   handler->AddHandlerPair(&HandleURLRewrite, &HandleURLReverseOverrideRewrite);
-  handler->AddHandlerPair(&brave::HandleNewTabPageURLRewrite,
-                          content::BrowserURLHandler::null_handler());
   ChromeContentBrowserClient::BrowserURLHandlerCreated(handler);
 }
 
@@ -453,6 +451,11 @@ BraveContentBrowserClient::CreateThrottlesForNavigation(
     content::NavigationHandle* handle) {
   std::vector<std::unique_ptr<content::NavigationThrottle>> throttles =
       ChromeContentBrowserClient::CreateThrottlesForNavigation(handle);
+
+  std::unique_ptr<content::NavigationThrottle> ntp_shows_navigation_throttle =
+      NewTabShowsNavigationThrottle::MaybeCreateThrottleFor(handle);
+  if (ntp_shows_navigation_throttle)
+    throttles.push_back(std::move(ntp_shows_navigation_throttle));
 
 #if BUILDFLAG(ENABLE_BRAVE_WEBTORRENT)
   throttles.push_back(
