@@ -29,6 +29,7 @@
 #include "bat/ads/internal/database/tables/creative_ad_notifications_database_table.h"
 #include "bat/ads/internal/database/tables/creative_new_tab_page_ads_database_table.h"
 #include "bat/ads/internal/eligible_ads/eligible_ads_filter_factory.h"
+#include "bat/ads/internal/features/contextual_ads_features.h"
 #include "bat/ads/internal/filters/ads_history_date_range_filter.h"
 #include "bat/ads/internal/filters/ads_history_filter_factory.h"
 #include "bat/ads/internal/frequency_capping/exclusion_rules/conversion_frequency_cap.h"
@@ -227,6 +228,13 @@ void AdsImpl::InitializeStep6(
   redeem_unblinded_payment_tokens_->MaybeRedeemAfterDelay(wallet_);
 
   ad_conversions_->StartTimerIfReady();
+
+  std::string active_trial_info = features::GetContextualAdsActiveTrialInfo();
+  if (active_trial_info.empty()) {
+    BLOG(1, "No running experiments found");
+  } else {
+    BLOG(1, "Running experiment " << active_trial_info);
+  }
 
   MaybeServeAdNotification(false);
 

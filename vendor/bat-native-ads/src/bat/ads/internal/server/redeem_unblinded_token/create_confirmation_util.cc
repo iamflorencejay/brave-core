@@ -12,6 +12,7 @@
 #include "brave/components/l10n/common/locale_util.h"
 #include "wrapper.hpp"
 #include "bat/ads/ads.h"
+#include "bat/ads/internal/features/contextual_ads_features.h"
 #include "bat/ads/internal/locale/country_code_util.h"
 #include "bat/ads/internal/platform/platform_helper.h"
 
@@ -23,23 +24,23 @@ using challenge_bypass_ristretto::TokenPreimage;
 
 std::string CreateConfirmationRequestDTO(
     const ConfirmationInfo& confirmation) {
-  base::Value payload(base::Value::Type::DICTIONARY);
+  base::Value dto(base::Value::Type::DICTIONARY);
 
-  payload.SetKey("creativeInstanceId",
+  dto.SetKey("creativeInstanceId",
       base::Value(confirmation.creative_instance_id));
 
-  payload.SetKey("payload", base::Value(base::Value::Type::DICTIONARY));
+  dto.SetKey("payload", base::Value(base::Value::Type::DICTIONARY));
 
   const std::string blinded_payment_token_base64 =
       confirmation.blinded_payment_token.encode_base64();
-  payload.SetKey("blindedPaymentToken",
+  dto.SetKey("blindedPaymentToken",
       base::Value(blinded_payment_token_base64));
 
   const std::string type = std::string(confirmation.type);
-  payload.SetKey("type", base::Value(type));
+  dto.SetKey("type", base::Value(type));
 
   DCHECK(!_build_channel.name.empty());
-  payload.SetKey("buildChannel", base::Value(_build_channel.name));
+  dto.SetKey("buildChannel", base::Value(_build_channel.name));
 
   if (_build_channel.is_release) {
     const std::string locale =
@@ -47,19 +48,23 @@ std::string CreateConfirmationRequestDTO(
 
     if (locale::HasLargeAnonymity(locale)) {
       const std::string country_code = brave_l10n::GetCountryCode(locale);
-      payload.SetKey("countryCode", base::Value(country_code));
+      dto.SetKey("countryCode", base::Value(country_code));
     } else {
       if (locale::IsAnonymous(locale)) {
-        payload.SetKey("countryCode", base::Value("??"));
+        dto.SetKey("countryCode", base::Value("??"));
       }
     }
   }
 
   const std::string platform = PlatformHelper::GetInstance()->GetPlatformName();
-  payload.SetKey("platform", base::Value(platform));
+  dto.SetKey("platform", base::Value(platform));
+
+  // switch(confirmation.type)
+  const std::string experiment = features::GetContextualAdsActiveTrialInfo();
+  dto.SetKey("experiment", base::Value(experiment));
 
   std::string json;
-  base::JSONWriter::Write(payload, &json);
+  base::JSONWriter::Write(dto, &json);
 
   return json;
 }
