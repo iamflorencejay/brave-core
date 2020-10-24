@@ -20,7 +20,8 @@ UserActivityFrequencyCap::UserActivityFrequencyCap(
 
 UserActivityFrequencyCap::~UserActivityFrequencyCap() = default;
 
-bool UserActivityFrequencyCap::IsAllowed() {
+bool UserActivityFrequencyCap::ShouldAllow(
+    const AdEventList& ad_events) {
   const UserActivityHistoryMap history =
       ads_->get_user_activity()->get_history();
   if (!DoesRespectCap(history)) {

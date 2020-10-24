@@ -28,7 +28,8 @@ class AdsPerHourFrequencyCap : public PermissionRule {
   AdsPerHourFrequencyCap(const AdsPerHourFrequencyCap&) = delete;
   AdsPerHourFrequencyCap& operator=(const AdsPerHourFrequencyCap&) = delete;
 
-  bool IsAllowed() override;
+  bool ShouldAllow(
+      const AdEventList& ad_events) override;
 
   std::string get_last_message() const override;
 

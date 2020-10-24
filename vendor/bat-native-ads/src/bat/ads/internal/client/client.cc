@@ -416,17 +416,6 @@ base::Time Client::GetNextCheckServeAdNotificationDate() {
       client_state_->next_check_serve_ad_timestamp_in_seconds);
 }
 
-void Client::SetAvailable(
-    const bool available) {
-  client_state_->available = available;
-
-  Save();
-}
-
-bool Client::GetAvailable() const {
-  return client_state_->available;
-}
-
 void Client::AppendPageProbabilitiesToHistory(
     const classification::PageProbabilitiesMap& page_probabilities) {
   client_state_->page_probabilities_history.push_front(page_probabilities);

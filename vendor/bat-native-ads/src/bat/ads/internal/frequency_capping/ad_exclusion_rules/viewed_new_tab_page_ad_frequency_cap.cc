@@ -60,7 +60,7 @@ AdEventList ViewedNewTabPageAdFrequencyCap::FilterAdEvents(
       filtered_ad_events.end(), [&ad](const AdEventInfo& ad_event) {
     return ad_event.uuid != ad.uuid ||
         ad_event.confirmation_type != ConfirmationType::kViewed ||
-            ad_event.ad_type != AdType::kNewTabPageAd;
+            ad_event.type != AdType::kNewTabPageAd;
   });
   filtered_ad_events.erase(iter, filtered_ad_events.end());
 

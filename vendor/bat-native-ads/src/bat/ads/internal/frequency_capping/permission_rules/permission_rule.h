@@ -8,13 +8,16 @@
 
 #include <string>
 
+#include "bat/ads/internal/ad_events/ad_event_info.h"
+
 namespace ads {
 
 class PermissionRule {
  public:
   virtual ~PermissionRule() = default;
 
-  virtual bool IsAllowed() = 0;
+  virtual bool ShouldAllow(
+      const AdEventList& ad_events) = 0;
 
   virtual std::string get_last_message() const = 0;
 };

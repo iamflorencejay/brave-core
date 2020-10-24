@@ -34,18 +34,18 @@ NewTabPageAdEventViewed::~NewTabPageAdEventViewed() = default;
 
 void NewTabPageAdEventViewed::Trigger(
     const NewTabPageAdInfo& ad) {
-  const auto permission_rules = CreatePermissionRules();
-  if (!ads_->IsAdAllowed(permission_rules)) {
-    BLOG(1, "New tab page ad: Not allowed based on history");
-    return;
-  }
-
   database::table::AdEvents ad_events_database_table(ads_);
   ad_events_database_table.GetAll([=](
       const Result result,
       const AdEventList ad_events) {
     if (result != Result::SUCCESS) {
       BLOG(1, "New tab page ad: Failed to get ad events");
+      return;
+    }
+
+    const auto permission_rules = CreatePermissionRules();
+    if (!ads_->IsPermittedToServeAds(permission_rules, ad_events)) {
+      BLOG(1, "New tab page ad: Not allowed based on history");
       return;
     }
 
@@ -63,13 +63,13 @@ void NewTabPageAdEventViewed::Trigger(
         << " and creative instance id " << ad.creative_instance_id);
 
     AdEventInfo ad_event;
+    ad_event.type = ad.type;
     ad_event.uuid = ad.uuid;
     ad_event.creative_instance_id = ad.creative_instance_id;
     ad_event.creative_set_id = ad.creative_set_id;
     ad_event.campaign_id = ad.campaign_id;
     ad_event.timestamp = static_cast<int64_t>(base::Time::Now().ToDoubleT());
     ad_event.confirmation_type = kConfirmationType;
-    ad_event.ad_type = ad.type;
     database::table::AdEvents ad_events_database_table(ads_);
     ad_events_database_table.LogEvent(ad_event, [](
         const Result result) {

@@ -51,13 +51,13 @@ void AdEvents::GetAll(
     GetAdEventsCallback callback) {
   const std::string query = base::StringPrintf(
       "SELECT "
+          "ae.type, "
           "ae.uuid, "
           "ae.creative_instance_id, "
           "ae.creative_set_id, "
           "ae.campaign_id, "
           "ae.timestamp, "
-          "ae.confirmation_type, "
-          "ae.ad_type "
+          "ae.confirmation_type "
       "FROM %s AS ae "
           "ORDER BY timestamp DESC",
       get_table_name().c_str());
@@ -67,13 +67,13 @@ void AdEvents::GetAll(
   command->command = query;
 
   command->record_bindings = {
+    DBCommand::RecordBindingType::STRING_TYPE,  // type
     DBCommand::RecordBindingType::STRING_TYPE,  // uuid
     DBCommand::RecordBindingType::STRING_TYPE,  // creative_instance_id
     DBCommand::RecordBindingType::STRING_TYPE,  // creative_set_id
     DBCommand::RecordBindingType::STRING_TYPE,  // campaign_id
     DBCommand::RecordBindingType::INT64_TYPE,   // timestamp
-    DBCommand::RecordBindingType::STRING_TYPE,  // confirmation type
-    DBCommand::RecordBindingType::STRING_TYPE   // ad type
+    DBCommand::RecordBindingType::STRING_TYPE   // confirmation type
   };
 
   DBTransactionPtr transaction = DBTransaction::New();
@@ -154,13 +154,13 @@ int AdEvents::BindParameters(
 
   int index = 0;
   for (const auto& ad_event : ad_events) {
+    BindString(command, index++, ad_event.type);
     BindString(command, index++, ad_event.uuid);
     BindString(command, index++, ad_event.creative_instance_id);
     BindString(command, index++, ad_event.creative_set_id);
     BindString(command, index++, ad_event.campaign_id);
     BindInt64(command, index++, ad_event.timestamp);
     BindString(command, index++, ad_event.confirmation_type);
-    BindString(command, index++, ad_event.ad_type);
 
     count++;
   }
@@ -177,13 +177,13 @@ std::string AdEvents::BuildInsertOrUpdateQuery(
 
   return base::StringPrintf(
       "INSERT OR REPLACE INTO %s "
-          "(uuid, "
+          "(type, "
+          "uuid, "
           "creative_instance_id, "
           "creative_set_id, "
           "campaign_id, "
           "timestamp, "
-          "confirmation_type, "
-          "ad_type) VALUES %s",
+          "confirmation_type) VALUES %s",
     get_table_name().c_str(),
     BuildBindingParameterPlaceholders(7, count).c_str());
 }
@@ -212,13 +212,13 @@ AdEventInfo AdEvents::GetFromRecord(
     DBRecord* record) const {
   AdEventInfo info;
 
-  info.uuid = ColumnString(record, 0);
-  info.creative_instance_id = ColumnString(record, 1);
-  info.creative_set_id = ColumnString(record, 2);
-  info.campaign_id = ColumnString(record, 3);
-  info.timestamp = ColumnInt64(record, 4);
-  info.confirmation_type = ConfirmationType(ColumnString(record, 5));
-  info.ad_type = AdType(ColumnString(record, 6));
+  info.type = AdType(ColumnString(record, 0));
+  info.uuid = ColumnString(record, 1);
+  info.creative_instance_id = ColumnString(record, 2);
+  info.creative_set_id = ColumnString(record, 3);
+  info.campaign_id = ColumnString(record, 4);
+  info.timestamp = ColumnInt64(record, 5);
+  info.confirmation_type = ConfirmationType(ColumnString(record, 6));
 
   return info;
 }
@@ -230,13 +230,13 @@ void AdEvents::CreateTableV5(
   const std::string query = base::StringPrintf(
       "CREATE TABLE %s "
           "(id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "
+          "type TEXT, "
           "uuid TEXT NOT NULL, "
           "creative_instance_id TEXT NOT NULL, "
           "creative_set_id TEXT NOT NULL, "
           "campaign_id TEXT NOT NULL, "
           "timestamp TIMESTAMP NOT NULL, "
-          "confirmation_type TEXT, "
-          "ad_type TEXT)",
+          "confirmation_type TEXT)",
       get_table_name().c_str());
 
   DBCommandPtr command = DBCommand::New();

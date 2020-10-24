@@ -31,7 +31,8 @@ class UnblindedTokensFrequencyCap : public PermissionRule  {
   UnblindedTokensFrequencyCap& operator=(
       const UnblindedTokensFrequencyCap&) = delete;
 
-  bool IsAllowed() override;
+  bool ShouldAllow(
+      const AdEventList& ad_events) override;
 
   std::string get_last_message() const override;
 

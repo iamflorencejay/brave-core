@@ -23,7 +23,8 @@ UnblindedTokensFrequencyCap::UnblindedTokensFrequencyCap(
 
 UnblindedTokensFrequencyCap::~UnblindedTokensFrequencyCap() = default;
 
-bool UnblindedTokensFrequencyCap::IsAllowed() {
+bool UnblindedTokensFrequencyCap::ShouldAllow(
+    const AdEventList& ad_events) {
   if (!DoesRespectCap()) {
     last_message_ = "You do not have enough unblinded tokens";
 

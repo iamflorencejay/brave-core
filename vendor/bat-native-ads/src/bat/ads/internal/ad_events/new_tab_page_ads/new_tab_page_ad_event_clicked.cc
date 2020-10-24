@@ -33,13 +33,13 @@ void NewTabPageAdEventClicked::Trigger(
   ads_->set_last_clicked_ad(ad);
 
   AdEventInfo ad_event;
+  ad_event.type = ad.type;
   ad_event.uuid = ad.uuid;
   ad_event.creative_instance_id = ad.creative_instance_id;
   ad_event.creative_set_id = ad.creative_set_id;
   ad_event.campaign_id = ad.campaign_id;
   ad_event.timestamp = static_cast<int64_t>(base::Time::Now().ToDoubleT());
   ad_event.confirmation_type = kConfirmationType;
-  ad_event.ad_type = ad.type;
   database::table::AdEvents ad_events_database_table(ads_);
   ad_events_database_table.LogEvent(ad_event, [](
       const Result result) {

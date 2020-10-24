@@ -186,13 +186,6 @@ class AdsImpl
       const std::string& creative_instance_id,
       const NewTabPageAdEventType event_type) override;
 
-  void OnGetCreativeNewTabPageAd(
-      const std::string& wallpaper_id,
-      const NewTabPageAdEventType event_type,
-      const Result result,
-      const std::string& creative_instance_id,
-      const CreativeNewTabPageAdInfo& creative_new_tab_page_ad);
-
   bool ShouldNotDisturb() const;
 
   int32_t get_active_tab_id() const;
@@ -265,31 +258,18 @@ class AdsImpl
   classification::PurchaseIntentWinningCategoryList
       GetPurchaseIntentWinningCategories();
 
-  void MaybeServeAdNotification(
-      const bool should_serve);
-  void ServeAdNotificationIfReady();
-  void ServeAdNotificationFromCategories(
-      const classification::CategoryList& categories);
-  void OnServeAdNotificationFromCategories(
-      const AdEventList& ad_events,
-      const Result result,
-      const classification::CategoryList& categories,
-      const CreativeAdNotificationList& ads);
-  void ServeAdNotificationFromParentCategories(
-      const classification::CategoryList& categories);
-  void OnServeAdNotificationFromParentCategories(
-      const AdEventList& ad_events,
-      const Result result,
-      const classification::CategoryList& categories,
-      const CreativeAdNotificationList& ads);
-  void ServeUntargetedAdNotification();
-  void OnServeUntargetedAdNotification(
-      const AdEventList& ad_events,
-      const Result result,
-      const classification::CategoryList& categories,
-      const CreativeAdNotificationList& ads);
   classification::CategoryList GetCategoriesToServeAd();
-  void ServeAdNotificationWithPacing(
+
+  void MaybeServeAdNotification();
+  void MaybeServeAdNotificationFromCategories(
+      const classification::CategoryList& categories,
+      const AdEventList& ad_events);
+  void MaybeServeAdNotificationFromParentCategories(
+      const classification::CategoryList& categories,
+      const AdEventList& ad_events);
+  void MaybeServeUntargetedAdNotification(
+      const AdEventList& ad_events);
+  void ServeAdNotification(
       const CreativeAdNotificationList& ads);
   void SuccessfullyServedAd();
   void FailedToServeAdNotification(
@@ -333,8 +313,9 @@ class AdsImpl
       const NewTabPageAdInfo& info,
       const ConfirmationType& confirmation_type);
 
-  bool IsAdAllowed(
-      const std::vector<std::unique_ptr<PermissionRule>>& permission_rules);
+  bool IsPermittedToServeAds(
+      const std::vector<std::unique_ptr<PermissionRule>>& permission_rules,
+      const AdEventList& ad_events);
 
   // Ad rewards
   void ReconcileAdRewards() override;

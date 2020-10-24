@@ -107,10 +107,6 @@ Result ClientState::FromJson(
         document["nextCheckServeAd"].GetUint64();
   }
 
-  if (document.HasMember("available")) {
-    available = document["available"].GetBool();
-  }
-
   if (document.HasMember("pageProbabilitiesHistory")) {
     for (const auto& page_probabilities :
         document["pageProbabilitiesHistory"].GetArray()) {
@@ -186,9 +182,6 @@ void SaveToJson(JsonWriter* writer, const ClientState& state) {
 
   writer->String("nextCheckServeAd");
   writer->Uint64(state.next_check_serve_ad_timestamp_in_seconds);
-
-  writer->String("available");
-  writer->Bool(state.available);
 
   writer->String("pageProbabilitiesHistory");
   writer->StartArray();

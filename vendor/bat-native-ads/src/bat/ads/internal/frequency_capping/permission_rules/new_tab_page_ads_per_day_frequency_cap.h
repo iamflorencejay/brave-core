@@ -30,7 +30,8 @@ class NewTabPageAdsPerDayFrequencyCap : public PermissionRule  {
   NewTabPageAdsPerDayFrequencyCap& operator=(
       const NewTabPageAdsPerDayFrequencyCap&) = delete;
 
-  bool IsAllowed() override;
+  bool ShouldAllow(
+      const AdEventList& ad_events) override;
 
   std::string get_last_message() const override;
 

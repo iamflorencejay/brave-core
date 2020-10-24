@@ -95,10 +95,6 @@ class Client {
       const base::Time& next_check_serve_ad_date);
   base::Time GetNextCheckServeAdNotificationDate();
 
-  void SetAvailable(
-      const bool available);
-  bool GetAvailable() const;
-
   void AppendPageProbabilitiesToHistory(
       const classification::PageProbabilitiesMap& page_probabilities);
   const classification::PageProbabilitiesList& GetPageProbabilitiesHistory();

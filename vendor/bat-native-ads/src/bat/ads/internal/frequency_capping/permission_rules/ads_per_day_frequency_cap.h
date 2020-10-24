@@ -6,12 +6,6 @@
 #ifndef BAT_ADS_INTERNAL_FREQUENCY_CAPPING_PERMISSION_RULES_ADS_PER_DAY_FREQUENCY_CAP_H_  // NOLINT
 #define BAT_ADS_INTERNAL_FREQUENCY_CAPPING_PERMISSION_RULES_ADS_PER_DAY_FREQUENCY_CAP_H_  // NOLINT
 
-#include <stdint.h>
-
-#include <deque>
-#include <string>
-
-#include "bat/ads/ad_history.h"
 #include "bat/ads/internal/frequency_capping/permission_rules/permission_rule.h"
 
 namespace ads {
@@ -28,7 +22,8 @@ class AdsPerDayFrequencyCap : public PermissionRule  {
   AdsPerDayFrequencyCap(const AdsPerDayFrequencyCap&) = delete;
   AdsPerDayFrequencyCap& operator=(const AdsPerDayFrequencyCap&) = delete;
 
-  bool IsAllowed() override;
+  bool ShouldAllow(
+      const AdEventList& ad_events) override;
 
   std::string get_last_message() const override;
 
@@ -38,10 +33,10 @@ class AdsPerDayFrequencyCap : public PermissionRule  {
   std::string last_message_;
 
   bool DoesRespectCap(
-      const std::deque<uint64_t>& history);
+      const AdEventList& ad_events);
 
-  std::deque<uint64_t> FilterHistory(
-      const std::deque<AdHistory>& history) const;
+  AdEventList FilterAdEvents(
+      const AdEventList& ad_events) const;
 };
 
 }  // namespace ads

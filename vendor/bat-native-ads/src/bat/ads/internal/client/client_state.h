@@ -36,7 +36,6 @@ struct ClientState {
   std::map<std::string, uint64_t> seen_ad_notifications;
   std::map<std::string, uint64_t> seen_advertisers;
   uint64_t next_check_serve_ad_timestamp_in_seconds = 0;
-  bool available = false;
   classification::PageProbabilitiesList page_probabilities_history;
   double score = 0.0;
   std::string version_code;

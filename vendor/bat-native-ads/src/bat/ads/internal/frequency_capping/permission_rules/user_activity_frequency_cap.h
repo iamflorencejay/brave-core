@@ -25,7 +25,8 @@ class UserActivityFrequencyCap : public PermissionRule {
   UserActivityFrequencyCap(const UserActivityFrequencyCap&) = delete;
   UserActivityFrequencyCap& operator=(const UserActivityFrequencyCap&) = delete;
 
-  bool IsAllowed() override;
+  bool ShouldAllow(
+      const AdEventList& ad_events) override;
 
   std::string get_last_message() const override;
 

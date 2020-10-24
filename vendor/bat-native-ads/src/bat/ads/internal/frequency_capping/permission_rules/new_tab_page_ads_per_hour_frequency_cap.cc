@@ -23,7 +23,8 @@ NewTabPageAdsPerHourFrequencyCap::NewTabPageAdsPerHourFrequencyCap(
 
 NewTabPageAdsPerHourFrequencyCap::~NewTabPageAdsPerHourFrequencyCap() = default;
 
-bool NewTabPageAdsPerHourFrequencyCap::IsAllowed() {
+bool NewTabPageAdsPerHourFrequencyCap::ShouldAllow(
+    const AdEventList& ad_events) {
   const std::deque<AdHistory> history = ads_->get_client()->GetAdsHistory();
   const std::deque<uint64_t> filtered_history = FilterHistory(history);
 

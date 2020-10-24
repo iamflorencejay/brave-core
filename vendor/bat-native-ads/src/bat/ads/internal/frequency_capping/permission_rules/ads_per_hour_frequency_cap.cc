@@ -21,7 +21,8 @@ AdsPerHourFrequencyCap::AdsPerHourFrequencyCap(
 
 AdsPerHourFrequencyCap::~AdsPerHourFrequencyCap() = default;
 
-bool AdsPerHourFrequencyCap::IsAllowed() {
+bool AdsPerHourFrequencyCap::ShouldAllow(
+    const AdEventList& ad_events) {
   if (PlatformHelper::GetInstance()->IsMobile()) {
     return true;
   }

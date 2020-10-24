@@ -29,7 +29,8 @@ class MinimumWaitTimeFrequencyCap : public PermissionRule {
   MinimumWaitTimeFrequencyCap& operator=(
       const MinimumWaitTimeFrequencyCap&) = delete;
 
-  bool IsAllowed() override;
+  bool ShouldAllow(
+      const AdEventList& ad_events) override;
 
   std::string get_last_message() const override;
 

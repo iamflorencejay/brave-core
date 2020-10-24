@@ -21,7 +21,8 @@ MinimumWaitTimeFrequencyCap::MinimumWaitTimeFrequencyCap(
 
 MinimumWaitTimeFrequencyCap::~MinimumWaitTimeFrequencyCap() = default;
 
-bool MinimumWaitTimeFrequencyCap::IsAllowed() {
+bool MinimumWaitTimeFrequencyCap::ShouldAllow(
+    const AdEventList& ad_events) {
   if (PlatformHelper::GetInstance()->IsMobile()) {
     return true;
   }
